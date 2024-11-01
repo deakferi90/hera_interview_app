@@ -2,13 +2,15 @@ import { Component, OnInit } from '@angular/core';
 import { Beneficiar } from './beneficiar.model';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-beneficiari',
   standalone: true,
   templateUrl: './beneficiari.component.html',
   styleUrls: ['./beneficiari.component.scss'],
-  imports: [FormsModule, CommonModule, ReactiveFormsModule],
+  imports: [FormsModule, CommonModule, ReactiveFormsModule, MatDialogModule],
 })
 export class BeneficiariComponent implements OnInit {
   beneficiari: Beneficiar[] = [];
@@ -21,6 +23,8 @@ export class BeneficiariComponent implements OnInit {
   sortColumn: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
   showForm = false;
+
+  constructor(public dialog: MatDialog) {}
 
   ngOnInit(): void {
     this.loadBeneficiari();
@@ -103,10 +107,19 @@ export class BeneficiariComponent implements OnInit {
     this.currentBeneficiarId = null;
   }
 
-  deleteBeneficiar(id: number) {
-    this.beneficiari = this.beneficiari.filter((b) => b.id !== id);
-    localStorage.setItem('beneficiari', JSON.stringify(this.beneficiari));
-    this.updateFilteredList();
+  deleteConfirm(id: number) {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      height: '200px',
+      panelClass: 'centered-dialog',
+    });
+    dialogRef.afterClosed().subscribe((confirmed: boolean) => {
+      if (confirmed) {
+        this.beneficiari = this.beneficiari.filter((b) => b.id !== id);
+        localStorage.setItem('beneficiari', JSON.stringify(this.beneficiari));
+        this.updateFilteredList();
+      }
+    });
   }
 
   validateBeneficiar(beneficiar: Beneficiar): boolean {
