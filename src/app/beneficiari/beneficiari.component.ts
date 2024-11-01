@@ -20,6 +20,7 @@ export class BeneficiariComponent implements OnInit {
   filteredBeneficiari: Beneficiar[] = [];
   sortColumn: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
+  showForm = false;
 
   ngOnInit(): void {
     this.loadBeneficiari();
@@ -158,5 +159,11 @@ export class BeneficiariComponent implements OnInit {
 
       return this.sortDirection === 'asc' ? comparison : -comparison;
     });
+  }
+
+  addForm() {
+    this.showForm = !this.showForm;
+    let val = document.querySelector('.needs-validation ');
+    val?.classList.toggle('hidden');
   }
 }

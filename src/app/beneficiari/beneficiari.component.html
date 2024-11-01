@@ -1,10 +1,13 @@
 <div class="container mt-4">
   <h2 class="mb-4">Gestionare Beneficiari</h2>
+  <button class="btn btn-primary mt-2" (click)="addForm()">
+    {{ !showForm ? "Arata form" : "Ascunde form" }}
+  </button>
 
   <form
     (ngSubmit)="saveBeneficiar()"
     novalidate
-    class="needs-validation was-validated"
+    class="needs-validation was-validated hidden"
   >
     <div class="mb-1.5">
       <label for="tip" class="form-label">Tip Beneficiar:</label>
@@ -154,7 +157,8 @@
       Cancel
     </button>
   </form>
-
+  <div class="info-msg">*Trebuie completate pentru a trimite form-ul</div>
+  @if(filteredBeneficiari.length > 0) {
   <h3 class="mt-4">Beneficiari Salvați</h3>
   <input
     type="text"
@@ -291,5 +295,9 @@
       </tr>
     </tbody>
   </table>
-  <div class="info-msg">*Trebuie completate pentru a trimite form-ul</div>
+  } @else {
+  <div class="alert alert-danger mt-2" role="alert">
+    Adauga beneficiar pentru a vedea tabelul cu lista
+  </div>
+  }
 </div>
