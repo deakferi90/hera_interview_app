@@ -122,23 +122,68 @@ export class BeneficiariComponent implements OnInit {
     });
   }
 
+  validateIBAN(iban: string): boolean {
+    iban = iban.replace(/\s+/g, '').toUpperCase();
+    if (iban.length < 15 || iban.length > 34) {
+      return false;
+    }
+    const rearranged = iban.slice(4) + iban.slice(0, 4);
+    const numericIban = rearranged.replace(/[A-Z]/g, (char) =>
+      (char.charCodeAt(0) - 55).toString()
+    );
+    const remainder = BigInt(numericIban) % 97n;
+    return remainder === 1n;
+  }
+
+  validateCUI(cui: string): boolean {
+    if (!/^\d{2,10}$/.test(cui)) {
+      return false;
+    }
+    const controlWeights = [7, 5, 3, 2, 1, 7, 5, 3, 2];
+    let sum = 0;
+    for (let i = 0; i < cui.length - 1; i++) {
+      sum += Number(cui[i]) * controlWeights[i];
+    }
+    const controlDigit = sum % 11 === 10 ? 0 : sum % 11;
+    return controlDigit === Number(cui[cui.length - 1]);
+  }
+
+  validateCNP(cnp: string): boolean {
+    if (!/^[1-8]\d{12}$/.test(cnp)) {
+      return false;
+    }
+    const controlWeights = [2, 7, 9, 1, 4, 6, 3, 5, 8, 2, 7, 9];
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+      sum += Number(cnp[i]) * controlWeights[i];
+    }
+    const controlDigit = sum % 11 === 10 ? 1 : sum % 11;
+    return controlDigit === Number(cnp[12]);
+  }
+
   validateBeneficiar(beneficiar: Beneficiar): boolean {
+    const isIBANValid = this.validateIBAN(beneficiar.conturiIBAN || '');
+    const isCUIValid =
+      beneficiar.tip === 'persoana_juridica'
+        ? this.validateCUI(beneficiar.cui || '')
+        : true;
+    const isCNPValid =
+      beneficiar.tip === 'persoana_fizica'
+        ? this.validateCNP(beneficiar.cnp || '')
+        : true;
+
     const mandatoryFields: (keyof Beneficiar)[] =
       beneficiar.tip === 'persoana_juridica'
         ? ['cui', 'conturiIBAN']
         : ['cnp', 'conturiIBAN'];
+    const areFieldsValid = mandatoryFields.every((field) => {
+      const value = beneficiar[field];
+      return (
+        typeof value === 'string' && value.length > 0 && value.length <= 100
+      );
+    });
 
-    return (
-      mandatoryFields.every((field) => {
-        const value = beneficiar[field];
-        return (
-          typeof value === 'string' && value.length > 0 && value.length <= 100
-        );
-      }) &&
-      beneficiar.adresa.length <= 100 &&
-      beneficiar.telefon.length <= 100 &&
-      beneficiar.conturiIBAN.length <= 100
-    );
+    return areFieldsValid && isIBANValid && isCUIValid && isCNPValid;
   }
 
   resetForm() {
